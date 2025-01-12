@@ -1,0 +1,10 @@
+[package]
+name = "gbaemu-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gbaemu-renderer = { version = "*", path = "../gbaemu-renderer" }
+gbaemu-ppu = { version = "*", path = "../gbaemu-ppu" }
+gbaemu-cpu = { version = "*", path = "../gbaemu-cpu" }
+sdl2 = { workspace = true }

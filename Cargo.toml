@@ -1,0 +1,14 @@
+[package]
+name = "gbaemurs"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = ["gbaemu-core", "gbaemu-cpu", "gbaemu-ppu", "gbaemu-renderer"]
+resolver = "2"
+
+[dependencies]
+gbaemu-core = { version = "*", path = "./gbaemu-core"}
+
+[workspace.dependencies]
+sdl2 = { version = "*", features = ["unsafe_textures"] }
