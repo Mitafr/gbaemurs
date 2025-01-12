@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["gbaemu-core", "gbaemu-cpu", "gbaemu-ppu", "gbaemu-renderer"]
+members = [ "gbaemu-common","gbaemu-core", "gbaemu-cpu", "gbaemu-ppu", "gbaemu-renderer"]
 resolver = "2"
 
 [dependencies]

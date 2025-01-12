@@ -27,7 +27,7 @@ impl Core {
             event_pump,
             ppu: Ppu::default(),
             cpu: Cpu::default(),
-            rom: Rom::default(),
+            rom: Rom::load("./test-roms/instr_timing.gb").unwrap(),
             cart: Cart::default(),
         })
     }
