@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+gbaemu-common = { version = "*", path = "../gbaemu-common" }
 gbaemu-renderer = { version = "*", path = "../gbaemu-renderer" }
 gbaemu-ppu = { version = "*", path = "../gbaemu-ppu" }
 gbaemu-cpu = { version = "*", path = "../gbaemu-cpu" }
