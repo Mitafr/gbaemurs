@@ -1,14 +1,15 @@
 use cart::Cart;
+use event::{EventPoller, EventType};
 use gbaemu_common::mem::Memory;
 use gbaemu_cpu::Cpu;
 use gbaemu_ppu::Ppu;
 use gbaemu_renderer::Renderer;
-use rom::Rom;
-use sdl2::{event::Event, keyboard::Keycode, EventPump};
+use gbaemu_rom::Rom;
 
 mod cart;
-mod rom;
+mod event;
 
+#[derive(Debug)]
 struct MemoryBus<'a> {
     ppu: &'a Ppu,
     cart: &'a Cart,
@@ -24,45 +25,38 @@ impl Memory for MemoryBus<'_> {
     }
 }
 
-pub struct Core {
+pub struct Core<R: Renderer, E: EventPoller> {
     ppu: Ppu,
     cpu: Cpu,
     rom: Rom,
     cart: Cart,
-    renderer: Renderer,
-    event_pump: EventPump,
+    renderer: R,
+    event_poller: E,
 }
 
-impl Core {
-    pub fn new() -> Result<Core, String> {
-        let renderer = Renderer::new()?;
-
-        let event_pump = renderer.sdl_ctx.event_pump().map_err(|e| e.to_string())?;
+impl<R: Renderer, E: EventPoller> Core<R, E> {
+    pub fn new(renderer: R, event_poller: E) -> Result<Core<R, E>, String> {
         Ok(Core {
             renderer,
-            event_pump,
+            event_poller,
             ppu: Ppu::default(),
             cpu: Cpu::default(),
-            rom: Rom::load("./test-roms/instr_timing.gb").unwrap(),
+            rom: Rom::load("./test-roms/007.gba").unwrap(),
             cart: Cart::default(),
         })
     }
 
     pub fn run(mut self) -> Result<(), String> {
+        println!("Loading game {}", self.rom.title());
         let mut bus = MemoryBus {
             ppu: &self.ppu,
             cart: &self.cart,
         };
-        self.cpu.execute(&mut bus);
+        self.cpu.execute(&self.rom, &mut bus);
         'running: loop {
-            for event in self.event_pump.poll_iter() {
-                match event {
-                    Event::Quit { .. }
-                    | Event::KeyDown {
-                        keycode: Some(Keycode::Escape),
-                        ..
-                    } => break 'running,
-                    _ => {}
+            for event in self.event_poller.poll_event() {
+                if event.quit() || event.escape() {
+                    break 'running;
                 }
             }
             self.renderer.draw();

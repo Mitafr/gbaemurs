@@ -2,6 +2,7 @@ use mem::PpuMem;
 
 mod mem;
 
+#[derive(Debug)]
 pub struct Ppu {
     mem: PpuMem,
 }

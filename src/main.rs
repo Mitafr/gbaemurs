@@ -1,6 +1,9 @@
 use gbaemu_core::Core;
+use gbaemu_renderer::sdl2::SdlRenderer;
 
 pub fn main() {
-    let core = Core::new().unwrap();
+    let sdl_renderer = SdlRenderer::new().unwrap();
+    let event_poller = sdl_renderer.event_poller();
+    let core = Core::new(sdl_renderer, event_poller).unwrap();
     core.run().unwrap();
 }

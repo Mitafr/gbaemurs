@@ -1,5 +1,6 @@
 use gbaemu_common::mem::Memory;
 
+#[derive(Debug)]
 pub struct PpuMem {
     vram: Vec<u16>,
     oam: Vec<u32>,
