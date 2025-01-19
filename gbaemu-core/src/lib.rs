@@ -41,7 +41,7 @@ impl<R: Renderer, E: EventPoller> Core<R, E> {
             event_poller,
             ppu: Ppu::default(),
             cpu: Cpu::default(),
-            rom: Rom::load("./test-roms/007.gba").unwrap(),
+            rom: Rom::load("./test-roms/pok.gba").unwrap(),
             cart: Cart::default(),
         })
     }
