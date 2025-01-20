@@ -7,6 +7,13 @@ use crate::{
 
 type PreInstr = (u32, Cond, OpCode);
 
+pub struct InstrExecutor<'c, B: Memory> {
+    pub(crate) instr: Instr,
+
+    pub(crate) register: &'c mut CpuRegister,
+    pub(crate) bus: &'c mut B,
+}
+
 #[derive(Debug, Default)]
 pub struct Instr {
     cond: Cond,
@@ -53,17 +60,23 @@ impl From<PreInstr> for Instr {
     }
 }
 
-impl Instr {
-    pub fn execute<B: Memory>(self, register: &mut CpuRegister, bus: &mut B) {
-        match self.op {
-            OpCode::B => register.pc = self.offset.unwrap() * 4,
-            OpCode::ADC => {
-                register.pc = 1;
-                println!("{:?}", self);
-                todo!();
-            }
+impl<'c, B: Memory> InstrExecutor<'c, B> {
+    pub fn execute(self) {
+        match self.instr.op {
+            OpCode::B => self.execute_arm_branch(),
+            OpCode::ADC => self.execute_arm_adc(),
             _ => todo!(),
         }
+    }
+
+    fn execute_arm_branch(self) {
+        self.register.pc = self.instr.offset.unwrap() * 4
+    }
+
+    fn execute_arm_adc(self) {
+        self.register.pc = 1;
+        println!("{:?}", self.instr);
+        todo!();
     }
 }
 

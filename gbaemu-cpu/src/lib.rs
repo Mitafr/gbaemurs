@@ -1,6 +1,6 @@
 use gbaemu_common::mem::Memory;
 use gbaemu_rom::Rom;
-use insrt::Instr;
+use insrt::{Instr, InstrExecutor};
 use register::CpuRegister;
 
 mod insrt;
@@ -34,11 +34,25 @@ impl Cpu {
         println!("{:#?}", bus);
         println!("{:#?}", self.register);
         println!("{:#?}", Instr::from(rom.entrypoint()));
-        Instr::from(rom.entrypoint()).execute(&mut self.register, bus);
+        InstrExecutor {
+            instr: Instr::from(rom.entrypoint()),
+            register: &mut self.register,
+            bus,
+        }
+        .execute();
 
         while self.state == CpuState::Running {
-            Instr::from(rom[self.register.pc]).execute(&mut self.register, bus);
+            InstrExecutor {
+                instr: self.fetch(rom),
+                register: &mut self.register,
+                bus,
+            }
+            .execute();
         }
         println!("{:#?}", self.register);
+    }
+
+    fn fetch(&self, rom: &Rom) -> Instr {
+        Instr::from(rom[self.register.pc])
     }
 }

@@ -1,3 +1,7 @@
+use gbaemu_common::mem::Memory;
+
+use crate::register::CpuRegister;
+
 #[derive(Debug, Default)]
 pub enum OpCodeType {
     #[default]
@@ -22,10 +26,23 @@ impl From<u32> for OpCodeType {
 
 #[derive(Debug, Default)]
 pub enum OpCode {
-    B,
-    ADD,
     ADC,
+    ADD,
+    AND,
+    B,
+    BIC,
+    CMN,
+    CMP,
+    EOR,
+    MOV,
+    MVN,
+    ORR,
+    RSB,
+    RSC,
+    SBC,
     SUB,
+    TEQ,
+    TST,
     #[default]
     UNKNOWN,
 }
