@@ -27,12 +27,13 @@ pub struct Instr {
 
 impl From<u32> for Instr {
     fn from(value: u32) -> Self {
-        println!("{:32b}", value);
+        println!("value => {:32b}", value);
+        println!("value => {:x}", value);
         println!("{:?}", OpCodeType::from(value));
         Instr::from((
             value,
             Cond::from_exact_bits(((value >> 28) & 0xF) as u8),
-            OpCode::from((value >> 24) & 0xf),
+            OpCode::from(value),
         ))
     }
 }
@@ -55,6 +56,15 @@ impl From<PreInstr> for Instr {
                 offset: Some(value.0 & 0x00FFFFFF),
                 immediate: value.0 >> 25 == 1,
             },
+            OpCode::MOV => Instr {
+                cond: value.1,
+                op: value.2,
+                rd: Some(value.0 & 0x0000F000),
+                rn: Some(value.0 & 0x00000F00),
+                op2: None,
+                offset: None,
+                immediate: value.0 >> 25 == 1,
+            },
             _ => todo!(),
         }
     }
@@ -65,18 +75,22 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
         match self.instr.op {
             OpCode::B => self.execute_arm_branch(),
             OpCode::ADC => self.execute_arm_adc(),
+            OpCode::MOV => self.execute_arm_mov(),
             _ => todo!(),
         }
     }
 
     fn execute_arm_branch(self) {
-        self.register.pc = self.instr.offset.unwrap() * 4
+        self.register.pc = self.register.pc + 8 + self.instr.offset.unwrap() * 4
     }
 
     fn execute_arm_adc(self) {
         self.register.pc = 1;
-        println!("{:?}", self.instr);
         todo!();
+    }
+
+    fn execute_arm_mov(&self) {
+        todo!()
     }
 }
 

@@ -15,7 +15,6 @@ pub enum OpCodeType {
 
 impl From<u32> for OpCodeType {
     fn from(value: u32) -> Self {
-        println!("{:02b}", (value >> 26) & 0x3);
         match (value >> 26) & 0x3 {
             0 => Self::DataP,
             1 => Self::Memory,
@@ -49,11 +48,20 @@ pub enum OpCode {
 
 impl From<u32> for OpCode {
     fn from(value: u32) -> Self {
-        match value {
+        let op = match OpCodeType::from(value) {
+            OpCodeType::Branch => value >> 24 & 0xf,
+            OpCodeType::DataP => value >> 21 & 0xf,
+            OpCodeType::Mul => todo!(),
+            OpCodeType::Psr => todo!(),
+            OpCodeType::Memory => todo!(),
+            OpCodeType::Copro => todo!(),
+        };
+        match op {
             0xA => OpCode::B,
             0x4 => OpCode::ADD,
             0x5 => OpCode::ADC,
             0x2 => OpCode::SUB,
+            0xD => OpCode::MOV,
             _ => OpCode::UNKNOWN,
         }
     }

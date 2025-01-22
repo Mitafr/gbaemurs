@@ -4,6 +4,7 @@ use insrt::{Instr, InstrExecutor};
 use register::CpuRegister;
 
 mod insrt;
+pub mod mem;
 mod opcode;
 mod register;
 
@@ -31,9 +32,6 @@ pub struct Cpu {
 
 impl Cpu {
     pub fn execute<B: Memory>(&mut self, rom: &Rom, bus: &mut B) {
-        println!("{:#?}", bus);
-        println!("{:#?}", self.register);
-        println!("{:#?}", Instr::from(rom.entrypoint()));
         InstrExecutor {
             instr: Instr::from(rom.entrypoint()),
             register: &mut self.register,
@@ -42,8 +40,9 @@ impl Cpu {
         .execute();
 
         while self.state == CpuState::Running {
+            println!("{}", self.register.pc);
             InstrExecutor {
-                instr: self.fetch(rom),
+                instr: self.fetch(bus),
                 register: &mut self.register,
                 bus,
             }
@@ -52,7 +51,10 @@ impl Cpu {
         println!("{:#?}", self.register);
     }
 
-    fn fetch(&self, rom: &Rom) -> Instr {
-        Instr::from(rom[self.register.pc])
+    fn fetch<B: Memory>(&mut self, bus: &B) -> Instr {
+        let address = self.register.pc;
+        self.register.pc += 4;
+        println!("Instr from pc => {}", address);
+        Instr::from(bus.read(address))
     }
 }

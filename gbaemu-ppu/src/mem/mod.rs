@@ -18,8 +18,8 @@ impl PpuMem {
 }
 
 impl Memory for PpuMem {
-    fn read(&self, address: u16) -> u16 {
-        self.vram[address as usize]
+    fn read(&self, address: u32) -> u32 {
+        self.vram[address as usize] as u32
     }
 
     fn write(&mut self, address: u16, value: u16) {

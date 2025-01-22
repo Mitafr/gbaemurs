@@ -1,7 +1,7 @@
 use cart::Cart;
 use event::{EventPoller, EventType};
 use gbaemu_common::mem::Memory;
-use gbaemu_cpu::Cpu;
+use gbaemu_cpu::{mem::CpuMemory, Cpu};
 use gbaemu_ppu::Ppu;
 use gbaemu_renderer::Renderer;
 use gbaemu_rom::Rom;
@@ -13,11 +13,16 @@ mod event;
 struct MemoryBus<'a> {
     ppu: &'a Ppu,
     cart: &'a Cart,
+    cpu: &'a CpuMemory,
 }
 
 impl Memory for MemoryBus<'_> {
-    fn read(&self, address: u16) -> u16 {
-        todo!()
+    fn read(&self, address: u32) -> u32 {
+        u32::from_le_bytes(
+            self.cpu.bios[address as usize..address as usize + 4]
+                .try_into()
+                .unwrap(),
+        )
     }
 
     fn write(&mut self, address: u16, value: u16) {
@@ -51,6 +56,7 @@ impl<R: Renderer, E: EventPoller> Core<R, E> {
         let mut bus = MemoryBus {
             ppu: &self.ppu,
             cart: &self.cart,
+            cpu: &CpuMemory::new("./test-roms/gba_bios.bin"),
         };
         self.cpu.execute(&self.rom, &mut bus);
         'running: loop {
