@@ -1,6 +1,6 @@
 use gbaemu_common::mem::Memory;
 use gbaemu_rom::Rom;
-use insrt::{Instr, InstrExecutor};
+use insrt::{executor::InstrExecutor, Instr};
 use register::CpuRegister;
 
 mod insrt;
@@ -40,7 +40,6 @@ impl Cpu {
         .execute();
 
         while self.state == CpuState::Running {
-            println!("{}", self.register.pc);
             InstrExecutor {
                 instr: self.fetch(bus),
                 register: &mut self.register,

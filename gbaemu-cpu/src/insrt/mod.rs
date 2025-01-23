@@ -1,35 +1,28 @@
-use gbaemu_common::mem::Memory;
+use branch::BranchInstr;
+use datap::DataPInstr;
+use gbaemu_common::print_bits_with_indices;
+use psr::PsrInstr;
 
-use crate::{
-    opcode::{OpCode, OpCodeType},
-    register::CpuRegister,
-};
+use crate::opcode::OpCode;
+
+pub mod branch;
+pub mod datap;
+pub mod executor;
+pub mod psr;
 
 type PreInstr = (u32, Cond, OpCode);
 
-pub struct InstrExecutor<'c, B: Memory> {
-    pub(crate) instr: Instr,
-
-    pub(crate) register: &'c mut CpuRegister,
-    pub(crate) bus: &'c mut B,
-}
-
-#[derive(Debug, Default)]
-pub struct Instr {
-    cond: Cond,
-    op: OpCode,
-    rd: Option<u32>,
-    rn: Option<u32>,
-    op2: Option<u32>,
-    offset: Option<u32>,
-    immediate: bool,
+#[derive(Debug, Clone)]
+pub enum Instr {
+    Branch(BranchInstr),
+    DataP(DataPInstr),
+    Psr(PsrInstr),
 }
 
 impl From<u32> for Instr {
     fn from(value: u32) -> Self {
-        println!("value => {:32b}", value);
+        print_bits_with_indices!(value);
         println!("value => {:x}", value);
-        println!("{:?}", OpCodeType::from(value));
         Instr::from((
             value,
             Cond::from_exact_bits(((value >> 28) & 0xF) as u8),
@@ -41,56 +34,42 @@ impl From<u32> for Instr {
 impl From<PreInstr> for Instr {
     fn from(value: PreInstr) -> Self {
         match value.2 {
-            OpCode::B => Instr {
+            OpCode::B => Instr::Branch(BranchInstr {
                 cond: value.1,
                 op: value.2,
                 offset: Some(value.0 & 0x00FFFFFF),
                 ..Default::default()
-            },
-            OpCode::ADC => Instr {
+            }),
+            OpCode::ADC => Instr::DataP(DataPInstr {
                 cond: value.1,
                 op: value.2,
-                rd: Some(value.0 & 0x0000F000),
-                rn: Some(value.0 & 0x00000F00),
-                op2: None,
-                offset: Some(value.0 & 0x00FFFFFF),
-                immediate: value.0 >> 25 == 1,
-            },
-            OpCode::MOV => Instr {
+                rd: (value.0 & 0x000F0000) >> 16,
+                rn: value.0 & 0x000F0000,
+                op2: value.0 & 0x000000FF,
+                immediate: value.0 >> 25 & 0xf == 1,
+                set_cond: (value.0 >> 20) & 0xf == 1,
+            }),
+            OpCode::MOV => Instr::DataP(DataPInstr {
                 cond: value.1,
                 op: value.2,
-                rd: Some(value.0 & 0x0000F000),
-                rn: Some(value.0 & 0x00000F00),
-                op2: None,
-                offset: None,
-                immediate: value.0 >> 25 == 1,
-            },
-            _ => todo!(),
+                rd: (value.0 & 0x000F0000) >> 16,
+                op2: value.0 & 0x0000000FF,
+                immediate: value.0 >> 25 & 0xf == 1,
+                set_cond: (value.0 >> 20) & 0xf == 1,
+                ..Default::default()
+            }),
+            OpCode::TEQ => Instr::DataP(DataPInstr {
+                cond: value.1,
+                op: value.2,
+                rn: (value.0 & 0x000F0000) >> 16,
+                op2: value.0 & 0x0000000FF,
+                immediate: value.0 >> 25 & 0xf == 1,
+                set_cond: (value.0 >> 20) & 0xf == 1,
+                ..Default::default()
+            }),
+            OpCode::MRS => Instr::Psr(PsrInstr::try_from(value).unwrap()),
+            _ => panic!("{:?} Instr not implemented", value),
         }
-    }
-}
-
-impl<'c, B: Memory> InstrExecutor<'c, B> {
-    pub fn execute(self) {
-        match self.instr.op {
-            OpCode::B => self.execute_arm_branch(),
-            OpCode::ADC => self.execute_arm_adc(),
-            OpCode::MOV => self.execute_arm_mov(),
-            _ => todo!(),
-        }
-    }
-
-    fn execute_arm_branch(self) {
-        self.register.pc = self.register.pc + 8 + self.instr.offset.unwrap() * 4
-    }
-
-    fn execute_arm_adc(self) {
-        self.register.pc = 1;
-        todo!();
-    }
-
-    fn execute_arm_mov(&self) {
-        todo!()
     }
 }
 
