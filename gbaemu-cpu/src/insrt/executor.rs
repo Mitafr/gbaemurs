@@ -1,8 +1,12 @@
+use bitflags::Flags;
 use gbaemu_common::mem::Memory;
 
-use crate::{opcode::OpCode, register::CpuRegister};
+use crate::{
+    opcode::OpCode,
+    register::{CpuRegister, Cspr},
+};
 
-use super::{branch::BranchInstr, datap::DataPInstr, Instr};
+use super::{branch::BranchInstr, datap::DataPInstr, memory::MemoryInstr, psr::PsrInstr, Instr};
 
 pub struct InstrExecutor<'c, B: Memory> {
     pub(crate) instr: Instr,
@@ -42,7 +46,12 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             },
             Instr::Psr(ref psr_instr) => match psr_instr.op {
                 OpCode::MSR => todo!(),
-                OpCode::MRS => todo!(),
+                OpCode::MRS => self.execute_arm_mrs(&psr_instr),
+                _ => unreachable!(),
+            },
+            Instr::Memory(ref mem_instr) => match mem_instr.op {
+                OpCode::LDR => self.execute_arm_ldr(&mem_instr),
+                OpCode::STR => todo!(),
                 _ => unreachable!(),
             },
         }
@@ -94,6 +103,19 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             "{:032b}",
             self.register[instr.rn] ^ self.register[instr.op2]
         );
+        todo!()
+    }
+
+    fn execute_arm_mrs(&mut self, psr_instr: &PsrInstr) {
+        match psr_instr.sd {
+            false => {
+                self.register.cpsr = Cspr::from_bits(psr_instr.rd.unwrap()).unwrap_or_default()
+            }
+            true => self.register.spsr = psr_instr.rd.unwrap(),
+        };
+    }
+
+    fn execute_arm_ldr(&mut self, mem_instr: &MemoryInstr) {
         todo!()
     }
 }

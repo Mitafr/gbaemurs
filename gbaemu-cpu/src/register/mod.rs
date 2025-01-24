@@ -39,6 +39,12 @@ impl Index<u32> for CpuRegister {
             7 => &self.gp7,
             8 => &self.gp8,
             9 => &self.gp9,
+            10 => &self.gp10,
+            11 => &self.gp11,
+            12 => &self.gp12,
+            13 => &self.sp13,
+            14 => &self.lr14,
+            15 => &self.pc,
             _ => todo!(),
         }
     }
@@ -57,6 +63,12 @@ impl IndexMut<u32> for CpuRegister {
             7 => &mut self.gp7,
             8 => &mut self.gp8,
             9 => &mut self.gp9,
+            10 => &mut self.gp10,
+            11 => &mut self.gp11,
+            12 => &mut self.gp12,
+            13 => &mut self.sp13,
+            14 => &mut self.lr14,
+            15 => &mut self.pc,
             _ => todo!(),
         }
     }

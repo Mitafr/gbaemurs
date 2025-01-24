@@ -27,9 +27,9 @@ impl TryFrom<PreInstr> for PsrInstr {
             ..Default::default()
         };
         match value.2 {
-            OpCode::MRS => instr.rd = Some((value.0 & 0x0000FF0000) >> 16),
+            OpCode::MRS => instr.rd = Some((value.0 & 0x00FF0000) >> 16),
             OpCode::MSR => {
-                instr.msr_value = Some(((value.0 & 0x0000FF0000) >> 16) as u8);
+                instr.msr_value = Some(((value.0 & 0x00FF0000) >> 16) as u8);
             }
             _ => return Err(format!("Not a PsrInstr")),
         }

@@ -1,6 +1,7 @@
 use branch::BranchInstr;
 use datap::DataPInstr;
 use gbaemu_common::print_bits_with_indices;
+use memory::MemoryInstr;
 use psr::PsrInstr;
 
 use crate::opcode::OpCode;
@@ -8,6 +9,7 @@ use crate::opcode::OpCode;
 pub mod branch;
 pub mod datap;
 pub mod executor;
+pub mod memory;
 pub mod psr;
 
 type PreInstr = (u32, Cond, OpCode);
@@ -17,6 +19,7 @@ pub enum Instr {
     Branch(BranchInstr),
     DataP(DataPInstr),
     Psr(PsrInstr),
+    Memory(MemoryInstr),
 }
 
 impl From<u32> for Instr {
@@ -34,39 +37,11 @@ impl From<u32> for Instr {
 impl From<PreInstr> for Instr {
     fn from(value: PreInstr) -> Self {
         match value.2 {
-            OpCode::B => Instr::Branch(BranchInstr {
-                cond: value.1,
-                op: value.2,
-                offset: Some(value.0 & 0x00FFFFFF),
-                ..Default::default()
-            }),
-            OpCode::ADC => Instr::DataP(DataPInstr {
-                cond: value.1,
-                op: value.2,
-                rd: (value.0 & 0x000F0000) >> 16,
-                rn: value.0 & 0x000F0000,
-                op2: value.0 & 0x000000FF,
-                immediate: value.0 >> 25 & 0xf == 1,
-                set_cond: (value.0 >> 20) & 0xf == 1,
-            }),
-            OpCode::MOV => Instr::DataP(DataPInstr {
-                cond: value.1,
-                op: value.2,
-                rd: (value.0 & 0x000F0000) >> 16,
-                op2: value.0 & 0x0000000FF,
-                immediate: value.0 >> 25 & 0xf == 1,
-                set_cond: (value.0 >> 20) & 0xf == 1,
-                ..Default::default()
-            }),
-            OpCode::TEQ => Instr::DataP(DataPInstr {
-                cond: value.1,
-                op: value.2,
-                rn: (value.0 & 0x000F0000) >> 16,
-                op2: value.0 & 0x0000000FF,
-                immediate: value.0 >> 25 & 0xf == 1,
-                set_cond: (value.0 >> 20) & 0xf == 1,
-                ..Default::default()
-            }),
+            OpCode::B => Instr::Branch(BranchInstr::try_from(value).unwrap()),
+            OpCode::ADC | OpCode::MOV | OpCode::TEQ => {
+                Instr::DataP(DataPInstr::try_from(value).unwrap())
+            }
+            OpCode::LDR | OpCode::STR => Instr::Memory(MemoryInstr::try_from(value).unwrap()),
             OpCode::MRS => Instr::Psr(PsrInstr::try_from(value).unwrap()),
             _ => panic!("{:?} Instr not implemented", value),
         }

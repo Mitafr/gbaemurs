@@ -3,7 +3,7 @@ use crate::opcode::OpCode;
 use super::{Cond, Instr, PreInstr};
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct DataPInstr {
+pub struct MemoryInstr {
     pub cond: Cond,
     pub op: OpCode,
     pub rd: u32,
@@ -13,12 +13,12 @@ pub struct DataPInstr {
     pub set_cond: bool,
 }
 
-impl TryFrom<PreInstr> for DataPInstr {
+impl TryFrom<PreInstr> for MemoryInstr {
     type Error = String;
 
     fn try_from(value: PreInstr) -> Result<Self, Self::Error> {
         match value.2 {
-            OpCode::ADC | OpCode::MOV | OpCode::TEQ => Ok(DataPInstr {
+            OpCode::STR | OpCode::LDR => Ok(MemoryInstr {
                 cond: value.1,
                 op: value.2,
                 rd: (value.0 & 0x000F0000) >> 16,
@@ -27,7 +27,7 @@ impl TryFrom<PreInstr> for DataPInstr {
                 immediate: value.0 >> 25 & 0xf == 1,
                 set_cond: (value.0 >> 20) & 0xf == 1,
             }),
-            _ => Err(format!("{:?} is not a DataPInstr", value)),
+            _ => Err(format!("{:?} is not a MemoryInstr", value)),
         }
     }
 }
