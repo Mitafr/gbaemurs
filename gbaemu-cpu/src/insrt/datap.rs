@@ -1,6 +1,6 @@
 use crate::opcode::OpCode;
 
-use super::{Cond, Instr, PreInstr};
+use super::{Cond, PreInstr};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct DataPInstr {
@@ -22,7 +22,7 @@ impl TryFrom<PreInstr> for DataPInstr {
                 cond: value.1,
                 op: value.2,
                 rd: (value.0 & 0x000F0000) >> 16,
-                rn: value.0 & 0x000F0000,
+                rn: (value.0 & 0x000F0000) >> 12,
                 op2: value.0 & 0x000000FF,
                 immediate: value.0 >> 25 & 0xf == 1,
                 set_cond: (value.0 >> 20) & 0xf == 1,

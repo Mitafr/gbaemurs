@@ -46,6 +46,7 @@ impl Cpu {
                 bus,
             }
             .execute();
+            println!("{:#?}", self.register);
         }
         println!("{:#?}", self.register);
     }

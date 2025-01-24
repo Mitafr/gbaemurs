@@ -116,6 +116,6 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
     }
 
     fn execute_arm_ldr(&mut self, mem_instr: &MemoryInstr) {
-        todo!()
+        self.register[mem_instr.rd] = mem_instr.rn;
     }
 }

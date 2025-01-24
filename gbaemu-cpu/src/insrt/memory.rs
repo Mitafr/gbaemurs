@@ -1,6 +1,6 @@
 use crate::opcode::OpCode;
 
-use super::{Cond, Instr, PreInstr};
+use super::{Cond, PreInstr};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct MemoryInstr {
@@ -10,7 +10,9 @@ pub struct MemoryInstr {
     pub rn: u32,
     pub op2: u32,
     pub immediate: bool,
-    pub set_cond: bool,
+    pub prepost: bool,
+    pub updown: bool,
+    pub byteword: bool,
 }
 
 impl TryFrom<PreInstr> for MemoryInstr {
@@ -22,10 +24,12 @@ impl TryFrom<PreInstr> for MemoryInstr {
                 cond: value.1,
                 op: value.2,
                 rd: (value.0 & 0x000F0000) >> 16,
-                rn: value.0 & 0x000F0000,
+                rn: (value.0 & 0x000F0000) >> 12,
                 op2: value.0 & 0x000000FF,
                 immediate: value.0 >> 25 & 0xf == 1,
-                set_cond: (value.0 >> 20) & 0xf == 1,
+                prepost: value.0 >> 24 & 0x1 == 1,
+                updown: value.0 >> 23 & 0x1 == 1,
+                byteword: value.0 >> 22 & 0x1 == 1,
             }),
             _ => Err(format!("{:?} is not a MemoryInstr", value)),
         }
