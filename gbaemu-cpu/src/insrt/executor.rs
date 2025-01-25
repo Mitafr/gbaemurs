@@ -1,8 +1,9 @@
+use bitflags::Flags;
 use gbaemu_common::mem::Memory;
 
 use crate::{
     opcode::OpCode,
-    register::{CpuRegister, Cspr},
+    register::{Cpsr, CpuRegister},
 };
 
 use super::{
@@ -38,7 +39,7 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
                 OpCode::MVN => todo!(),
                 OpCode::ORR => todo!(),
                 OpCode::RSB => todo!(),
-                OpCode::RSC => todo!(),
+                OpCode::RSC => self.execute_arm_rsc(data_pinstr),
                 OpCode::SBC => todo!(),
                 OpCode::SUB => todo!(),
                 OpCode::TEQ => self.execute_arm_teq(data_pinstr),
@@ -52,7 +53,9 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             },
             Instr::Memory(mem_instr) => match mem_instr.op {
                 OpCode::LDR => self.execute_arm_ldr(mem_instr),
-                OpCode::STR => todo!(),
+                OpCode::STR => self.execute_arm_str(mem_instr),
+                OpCode::STM => todo!(),
+                OpCode::LDM => todo!(),
                 _ => unreachable!(),
             },
         }
@@ -81,7 +84,7 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
 
     fn cond_match(&self, instr: impl InstrBase) -> bool {
         match instr.cond() {
-            super::Cond::EQ => todo!(),
+            super::Cond::EQ => self.register.cpsr.contains(Cpsr::Z),
             super::Cond::NE => todo!(),
             super::Cond::CSHS => todo!(),
             super::Cond::CCLO => todo!(),
@@ -94,7 +97,10 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             super::Cond::GE => todo!(),
             super::Cond::LT => todo!(),
             super::Cond::GT => todo!(),
-            super::Cond::LE => todo!(),
+            super::Cond::LE => {
+                self.register.cpsr.contains(Cpsr::Z)
+                    || (self.register.cpsr.contains(Cpsr::N) ^ self.register.cpsr.contains(Cpsr::V))
+            }
             super::Cond::AL => true,
             super::Cond::NV => todo!(),
         }
@@ -117,7 +123,7 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             return;
         }
         match instr.sd {
-            false => self.register.cpsr = Cspr::from_bits(instr.rd.unwrap()).unwrap_or_default(),
+            false => self.register.cpsr = Cpsr::from_bits(instr.rd.unwrap()).unwrap_or_default(),
             true => self.register.spsr = instr.rd.unwrap(),
         };
     }
@@ -134,5 +140,16 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             return;
         }
         self.register[instr.rd] = instr.rn + instr.op2;
+    }
+
+    fn execute_arm_rsc(&mut self, instr: DataPInstr) {
+        if !self.cond_match(instr) {
+            return;
+        }
+        self.register[instr.rd] = instr.op2 - instr.rn; // TODO: + CY-1
+    }
+
+    fn execute_arm_str(&self, mem_instr: MemoryInstr) {
+        todo!()
     }
 }

@@ -56,7 +56,7 @@ impl From<PreInstr> for Instr {
         match value.2 {
             OpCodeType::Branch => Instr::Branch(BranchInstr::try_from(value).unwrap()),
             OpCodeType::DataP => Instr::DataP(DataPInstr::try_from(value).unwrap()),
-            OpCodeType::Memory | OpCodeType::HalfwordMem => {
+            OpCodeType::Memory | OpCodeType::HalfwordMem | OpCodeType::BlockMem => {
                 Instr::Memory(MemoryInstr::try_from(value).unwrap())
             }
             OpCodeType::Psr => Instr::Psr(PsrInstr::try_from(value).unwrap()),

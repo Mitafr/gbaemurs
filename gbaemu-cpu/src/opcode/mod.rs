@@ -89,6 +89,7 @@ pub enum OpCode {
     TST,
     #[default]
     UNKNOWN,
+    LDM,
 }
 
 impl From<(u32, OpCodeType)> for OpCode {
@@ -100,7 +101,7 @@ impl From<(u32, OpCodeType)> for OpCode {
             OpCodeType::Psr => value >> 21 & 0x1,
             OpCodeType::Memory => value >> 20 & 0x1,
             OpCodeType::Copro => todo!(),
-            OpCodeType::BlockMem => todo!(),
+            OpCodeType::BlockMem => value >> 20 & 0x1,
             OpCodeType::HalfwordMem => (value >> 5) & 0x3,
             OpCodeType::MemorySwp => todo!(),
             OpCodeType::SoftwareInt => todo!(),
@@ -109,13 +110,23 @@ impl From<(u32, OpCodeType)> for OpCode {
         match (optype, op) {
             (OpCodeType::Psr, 0x1) => OpCode::MRS,
             (OpCodeType::Branch, 0xA) => OpCode::B,
+            (OpCodeType::DataP, 0x2) => OpCode::SUB,
+            (OpCodeType::DataP, 0x3) => OpCode::RSB,
             (OpCodeType::DataP, 0x4) => OpCode::ADD,
             (OpCodeType::DataP, 0x5) => OpCode::ADC,
-            (OpCodeType::DataP, 0x2) => OpCode::SUB,
-            (OpCodeType::DataP, 0xD) => OpCode::MOV,
+            (OpCodeType::DataP, 0x6) => OpCode::SBC,
+            (OpCodeType::DataP, 0x7) => OpCode::RSC,
+            (OpCodeType::DataP, 0x8) => OpCode::TST,
             (OpCodeType::DataP, 0x9) => OpCode::TEQ,
+            (OpCodeType::DataP, 0xA) => OpCode::CMP,
+            (OpCodeType::DataP, 0xB) => OpCode::CMN,
+            (OpCodeType::DataP, 0xC) => OpCode::ORR,
+            (OpCodeType::DataP, 0xD) => OpCode::MOV,
+            (OpCodeType::DataP, 0xE) => OpCode::BIC,
             (OpCodeType::Memory, 0) => OpCode::STR,
             (OpCodeType::Memory, 1) => OpCode::LDR,
+            (OpCodeType::BlockMem, 0) => OpCode::STM,
+            (OpCodeType::BlockMem, 1) => OpCode::LDM,
             (OpCodeType::HalfwordMem, 1) if value >> 20 & 0x1 == 0 => OpCode::STRH,
             (OpCodeType::HalfwordMem, 1) if value >> 20 & 0x1 == 1 => OpCode::LDRH,
             (OpCodeType::HalfwordMem, 2) if value >> 20 & 0x1 == 0 => OpCode::LDRD,

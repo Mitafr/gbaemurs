@@ -20,7 +20,7 @@ pub struct CpuRegister {
     pub sp13: u32,
     pub lr14: u32,
     pub pc: u32,
-    pub cpsr: Cspr,
+    pub cpsr: Cpsr,
     pub spsr: u32,
 }
 
@@ -77,7 +77,7 @@ impl IndexMut<u32> for CpuRegister {
 bitflags! {
 
     #[derive(Default, Debug, Clone, Copy)]
-    pub struct Cspr: u32 {
+    pub struct Cpsr: u32 {
         const N = 1 << 31;
         const Z = 1 << 30;
         const C = 1 << 29;
