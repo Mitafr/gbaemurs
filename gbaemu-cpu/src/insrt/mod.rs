@@ -4,7 +4,7 @@ use gbaemu_common::print_bits_with_indices;
 use memory::MemoryInstr;
 use psr::PsrInstr;
 
-use crate::opcode::OpCode;
+use crate::opcode::{OpCode, OpCodeType};
 
 pub mod branch;
 pub mod datap;
@@ -12,7 +12,11 @@ pub mod executor;
 pub mod memory;
 pub mod psr;
 
-type PreInstr = (u32, Cond, OpCode);
+pub trait InstrBase {
+    fn cond(&self) -> &Cond;
+}
+
+type PreInstr = (u32, Cond, OpCodeType, OpCode);
 
 #[derive(Debug, Clone)]
 pub enum Instr {
@@ -22,14 +26,27 @@ pub enum Instr {
     Memory(MemoryInstr),
 }
 
+impl InstrBase for Instr {
+    fn cond(&self) -> &Cond {
+        match self {
+            Instr::Branch(branch_instr) => &branch_instr.cond(),
+            Instr::DataP(data_pinstr) => &data_pinstr.cond(),
+            Instr::Psr(psr_instr) => &psr_instr.cond(),
+            Instr::Memory(memory_instr) => &memory_instr.cond(),
+        }
+    }
+}
+
 impl From<u32> for Instr {
     fn from(value: u32) -> Self {
         print_bits_with_indices!(value);
         println!("value => {:x}", value);
+        let optype = OpCodeType::from(value);
         Instr::from((
             value,
             Cond::from_exact_bits(((value >> 28) & 0xF) as u8),
-            OpCode::from(value),
+            optype,
+            OpCode::from((value, optype)),
         ))
     }
 }
@@ -37,13 +54,13 @@ impl From<u32> for Instr {
 impl From<PreInstr> for Instr {
     fn from(value: PreInstr) -> Self {
         match value.2 {
-            OpCode::B => Instr::Branch(BranchInstr::try_from(value).unwrap()),
-            OpCode::ADC | OpCode::MOV | OpCode::TEQ => {
-                Instr::DataP(DataPInstr::try_from(value).unwrap())
+            OpCodeType::Branch => Instr::Branch(BranchInstr::try_from(value).unwrap()),
+            OpCodeType::DataP => Instr::DataP(DataPInstr::try_from(value).unwrap()),
+            OpCodeType::Memory | OpCodeType::HalfwordMem => {
+                Instr::Memory(MemoryInstr::try_from(value).unwrap())
             }
-            OpCode::LDR | OpCode::STR => Instr::Memory(MemoryInstr::try_from(value).unwrap()),
-            OpCode::MRS => Instr::Psr(PsrInstr::try_from(value).unwrap()),
-            _ => panic!("{:?} Instr not implemented", value),
+            OpCodeType::Psr => Instr::Psr(PsrInstr::try_from(value).unwrap()),
+            _ => panic!("{:x?} Instr not implemented", value),
         }
     }
 }

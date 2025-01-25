@@ -1,6 +1,6 @@
 use crate::opcode::OpCode;
 
-use super::{Cond, PreInstr};
+use super::{Cond, InstrBase, PreInstr};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct BranchInstr {
@@ -13,14 +13,20 @@ impl TryFrom<PreInstr> for BranchInstr {
     type Error = String;
 
     fn try_from(value: PreInstr) -> Result<Self, Self::Error> {
-        match value.2 {
+        match value.3 {
             OpCode::B | OpCode::BL | OpCode::BLX => Ok(BranchInstr {
                 cond: value.1,
-                op: value.2,
+                op: value.3,
                 offset: Some(value.0 & 0x00FFFFFF),
                 ..Default::default()
             }),
             _ => Err(format!("{:?} is not a DataPInstr", value)),
         }
+    }
+}
+
+impl InstrBase for BranchInstr {
+    fn cond(&self) -> &Cond {
+        &self.cond
     }
 }

@@ -18,11 +18,15 @@ struct MemoryBus<'a> {
 
 impl Memory for MemoryBus<'_> {
     fn read(&self, address: u32) -> u32 {
-        u32::from_le_bytes(
-            self.cpu.bios[address as usize..address as usize + 4]
-                .try_into()
-                .unwrap(),
-        )
+        match address {
+            0..0x00003FFF => u32::from_le_bytes(
+                self.cpu.bios[address as usize..address as usize + 4]
+                    .try_into()
+                    .unwrap(),
+            ),
+            0x0000400..0x01FFFFFF => unreachable!(),
+            _ => todo!(),
+        }
     }
 
     fn write(&mut self, address: u16, value: u16) {

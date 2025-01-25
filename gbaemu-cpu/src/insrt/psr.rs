@@ -1,6 +1,6 @@
 use crate::opcode::OpCode;
 
-use super::{Cond, PreInstr};
+use super::{Cond, InstrBase, PreInstr};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct PsrInstr {
@@ -20,13 +20,13 @@ impl TryFrom<PreInstr> for PsrInstr {
     fn try_from(value: PreInstr) -> Result<Self, Self::Error> {
         let mut instr = PsrInstr {
             cond: value.1,
-            op: value.2,
+            op: value.3,
             sd: (value.0 >> 22) & 0xf == 1,
             op2: value.0 & 0x0000000FF,
             immediate: value.0 >> 25 & 0xf == 1,
             ..Default::default()
         };
-        match value.2 {
+        match value.3 {
             OpCode::MRS => instr.rd = Some((value.0 & 0x00FF0000) >> 16),
             OpCode::MSR => {
                 instr.msr_value = Some(((value.0 & 0x00FF0000) >> 16) as u8);
@@ -34,5 +34,11 @@ impl TryFrom<PreInstr> for PsrInstr {
             _ => return Err(format!("Not a PsrInstr")),
         }
         Ok(instr)
+    }
+}
+
+impl InstrBase for PsrInstr {
+    fn cond(&self) -> &Cond {
+        &self.cond
     }
 }
