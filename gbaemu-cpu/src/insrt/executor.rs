@@ -7,7 +7,8 @@ use crate::{
 };
 
 use super::{
-    branch::BranchInstr, datap::DataPInstr, memory::MemoryInstr, psr::PsrInstr, Instr, InstrBase,
+    branch::BranchInstr, datap::DataPInstr, memory::MemoryInstr, psr::PsrInstr, Cond, Instr,
+    InstrBase,
 };
 
 pub struct InstrExecutor<'c, B: Memory> {
@@ -84,25 +85,25 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
 
     fn cond_match(&self, instr: impl InstrBase) -> bool {
         match instr.cond() {
-            super::Cond::EQ => self.register.cpsr.contains(Cpsr::Z),
-            super::Cond::NE => todo!(),
-            super::Cond::CSHS => todo!(),
-            super::Cond::CCLO => todo!(),
-            super::Cond::MI => todo!(),
-            super::Cond::PL => todo!(),
-            super::Cond::VS => todo!(),
-            super::Cond::VC => todo!(),
-            super::Cond::HI => todo!(),
-            super::Cond::LS => todo!(),
-            super::Cond::GE => todo!(),
-            super::Cond::LT => todo!(),
-            super::Cond::GT => todo!(),
-            super::Cond::LE => {
+            Cond::EQ => self.register.cpsr.contains(Cpsr::Z),
+            Cond::NE => todo!(),
+            Cond::CSHS => todo!(),
+            Cond::CCLO => todo!(),
+            Cond::MI => todo!(),
+            Cond::PL => todo!(),
+            Cond::VS => todo!(),
+            Cond::VC => todo!(),
+            Cond::HI => todo!(),
+            Cond::LS => todo!(),
+            Cond::GE => todo!(),
+            Cond::LT => todo!(),
+            Cond::GT => todo!(),
+            Cond::LE => {
                 self.register.cpsr.contains(Cpsr::Z)
                     || (self.register.cpsr.contains(Cpsr::N) ^ self.register.cpsr.contains(Cpsr::V))
             }
-            super::Cond::AL => true,
-            super::Cond::NV => todo!(),
+            Cond::AL => true,
+            Cond::NV => todo!(),
         }
     }
 
