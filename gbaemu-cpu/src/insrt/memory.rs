@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::opcode::OpCode;
 
 use super::{Cond, InstrBase, PreInstr};
@@ -16,6 +18,7 @@ pub struct MemoryInstr {
     pub load_store: bool,
     pub load_psr: bool,
     pub write_back: bool,
+    pub rlist: u32,
 }
 
 impl TryFrom<PreInstr> for MemoryInstr {
@@ -63,7 +66,7 @@ impl TryFrom<PreInstr> for MemoryInstr {
                 load_psr: value.0 >> 22 & 0x1 == 1,
                 write_back: value.0 >> 21 & 0x1 == 1,
                 rn: (value.0 & 0x000F0000) >> 16,
-                // TODO: Rlist
+                rlist: value.0 & 0x000000FF,
                 ..Default::default()
             }),
             _ => Err(format!("{:?} is not a MemoryInstr", value)),
@@ -74,5 +77,11 @@ impl TryFrom<PreInstr> for MemoryInstr {
 impl InstrBase for MemoryInstr {
     fn cond(&self) -> &Cond {
         &self.cond
+    }
+}
+
+impl Display for MemoryInstr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}{{{:?}}}", self.op, self.cond())
     }
 }

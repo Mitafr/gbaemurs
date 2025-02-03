@@ -4,8 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-gbaemu-common = { version = "*", path = "../gbaemu-common" }
-gbaemu-rom = { version = "*", path = "../gbaemu-rom" }
-
+gbaemu-common.workspace = true
+gbaemu-rom.workspace = true 
 bitflags = "2"
 once_cell = "1"

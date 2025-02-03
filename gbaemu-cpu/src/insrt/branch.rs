@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::opcode::OpCode;
 
 use super::{Cond, InstrBase, PreInstr};
@@ -28,5 +30,11 @@ impl TryFrom<PreInstr> for BranchInstr {
 impl InstrBase for BranchInstr {
     fn cond(&self) -> &Cond {
         &self.cond
+    }
+}
+
+impl Display for BranchInstr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}{{{:?}}}", self.op, self.cond())
     }
 }

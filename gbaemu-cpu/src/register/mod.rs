@@ -24,6 +24,14 @@ pub struct CpuRegister {
     pub spsr: u32,
 }
 
+// impl Index<u8> for CpuRegister {
+//     type Output = u32;
+
+//     fn index(&self, index: u8) -> &Self::Output {
+
+//     }
+// }
+
 impl Index<u32> for CpuRegister {
     type Output = u32;
 

@@ -1,13 +1,18 @@
+use std::{
+    sync::mpsc::{self, Sender},
+    thread,
+};
+
 use cart::Cart;
-use event::{EventPoller, EventType};
 use gbaemu_common::mem::Memory;
 use gbaemu_cpu::{mem::CpuMemory, Cpu};
 use gbaemu_ppu::Ppu;
-use gbaemu_renderer::Renderer;
 use gbaemu_rom::Rom;
+use renderer::{WinitRenderer, W_HEIGHT, W_WIDTH};
+use winit::event_loop::{self, ControlFlow, EventLoop};
 
 mod cart;
-mod event;
+mod renderer;
 
 #[derive(Debug)]
 struct MemoryBus<'a> {
@@ -34,43 +39,45 @@ impl Memory for MemoryBus<'_> {
     }
 }
 
-pub struct Core<R: Renderer, E: EventPoller> {
+pub struct Core {
     ppu: Ppu,
     cpu: Cpu,
     rom: Rom,
     cart: Cart,
-    renderer: R,
-    event_poller: E,
+    renderer: WinitRenderer,
+    pix_sender: Sender<Vec<u8>>,
 }
 
-impl<R: Renderer, E: EventPoller> Core<R, E> {
-    pub fn new(renderer: R, event_poller: E) -> Result<Core<R, E>, String> {
+impl Core {
+    pub fn new() -> Result<Core, String> {
+        let (pix_sender, pix_recv) = mpsc::channel();
         Ok(Core {
-            renderer,
-            event_poller,
             ppu: Ppu::default(),
             cpu: Cpu::default(),
             rom: Rom::load("./test-roms/pok.gba").unwrap(),
             cart: Cart::default(),
+            renderer: WinitRenderer::new(pix_recv),
+            pix_sender,
         })
     }
 
     pub fn run(mut self) -> Result<(), String> {
         println!("Loading game {}", self.rom.title());
-        let mut bus = MemoryBus {
-            ppu: &self.ppu,
-            cart: &self.cart,
-            cpu: &CpuMemory::new("./test-roms/gba_bios.bin"),
-        };
-        self.cpu.execute(&self.rom, &mut bus);
-        'running: loop {
-            for event in self.event_poller.poll_event() {
-                if event.quit() || event.escape() {
-                    break 'running;
-                }
-            }
-            self.renderer.draw();
-        }
+        let emu_handle = thread::spawn(move || {
+            let mut bus = MemoryBus {
+                ppu: &self.ppu,
+                cart: &self.cart,
+                cpu: &CpuMemory::new("./test-roms/gba_bios.bin"),
+            };
+            self.pix_sender
+                .send(vec![0x99; (W_WIDTH * W_HEIGHT * 4) as usize])
+                .unwrap();
+            self.cpu.execute(&self.rom, &mut bus);
+        });
+        let event_loop = EventLoop::new().unwrap();
+        event_loop.set_control_flow(ControlFlow::Poll);
+        event_loop.run_app(&mut self.renderer).unwrap();
+        emu_handle.join().unwrap();
         Ok(())
     }
 }

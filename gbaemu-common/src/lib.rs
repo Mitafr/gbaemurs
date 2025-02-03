@@ -1,5 +1,9 @@
 pub mod mem;
 
+pub type Word = u32;
+pub type HWord = u16;
+pub type Byte = u8;
+
 #[macro_export]
 macro_rules! print_bits_with_indices {
     ($value:expr) => {

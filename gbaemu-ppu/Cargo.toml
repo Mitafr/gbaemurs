@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-gbaemu-common = { version = "*", path = "../gbaemu-common" }
+gbaemu-common.workspace = true

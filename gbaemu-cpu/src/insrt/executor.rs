@@ -1,9 +1,9 @@
-use bitflags::Flags;
 use gbaemu_common::mem::Memory;
 
 use crate::{
     opcode::OpCode,
     register::{Cpsr, CpuRegister},
+    CpuMode,
 };
 
 use super::{
@@ -16,12 +16,14 @@ pub struct InstrExecutor<'c, B: Memory> {
 
     pub(crate) register: &'c mut CpuRegister,
     pub(crate) bus: &'c mut B,
+    pub(crate) mode: CpuMode,
+    pub(crate) cycle: &'c mut u32,
 }
 
 impl<'c, B: Memory> InstrExecutor<'c, B> {
     pub fn execute(mut self) {
-        println!("{:#?}", self.instr);
-        match self.instr.clone() {
+        println!("{}", self.instr);
+        match self.instr {
             Instr::Branch(branch_instr) => match branch_instr.op {
                 OpCode::B => self.execute_arm_branch(branch_instr),
                 OpCode::BL => todo!(),
@@ -55,7 +57,7 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             Instr::Memory(mem_instr) => match mem_instr.op {
                 OpCode::LDR => self.execute_arm_ldr(mem_instr),
                 OpCode::STR => self.execute_arm_str(mem_instr),
-                OpCode::STM => todo!(),
+                OpCode::STM => self.execute_arm_stm(mem_instr),
                 OpCode::LDM => todo!(),
                 _ => unreachable!(),
             },
@@ -81,29 +83,45 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
             return;
         }
         self.register[instr.rd] = instr.op2;
+        if instr.set_cond {
+            self.register.cpsr.set(Cpsr::N, instr.op2 & 0xF0000000 == 1);
+        }
     }
 
     fn cond_match(&self, instr: impl InstrBase) -> bool {
         match instr.cond() {
             Cond::EQ => self.register.cpsr.contains(Cpsr::Z),
-            Cond::NE => todo!(),
-            Cond::CSHS => todo!(),
-            Cond::CCLO => todo!(),
-            Cond::MI => todo!(),
-            Cond::PL => todo!(),
-            Cond::VS => todo!(),
-            Cond::VC => todo!(),
-            Cond::HI => todo!(),
-            Cond::LS => todo!(),
-            Cond::GE => todo!(),
-            Cond::LT => todo!(),
-            Cond::GT => todo!(),
+            Cond::NE => !self.register.cpsr.contains(Cpsr::Z),
+            Cond::CSHS => self.register.cpsr.contains(Cpsr::C),
+            Cond::CCLO => !self.register.cpsr.contains(Cpsr::C),
+            Cond::MI => self.register.cpsr.contains(Cpsr::N),
+            Cond::PL => !self.register.cpsr.contains(Cpsr::N),
+            Cond::VS => self.register.cpsr.contains(Cpsr::V),
+            Cond::VC => !self.register.cpsr.contains(Cpsr::V),
+            Cond::HI => {
+                self.register.cpsr.contains(Cpsr::C) && !self.register.cpsr.contains(Cpsr::Z)
+            }
+            Cond::LS => {
+                !self.register.cpsr.contains(Cpsr::C) || self.register.cpsr.contains(Cpsr::Z)
+            }
+            Cond::GE => {
+                self.register.cpsr.contains(Cpsr::N) == self.register.cpsr.contains(Cpsr::V)
+            }
+            Cond::LT => {
+                self.register.cpsr.contains(Cpsr::N) != self.register.cpsr.contains(Cpsr::V)
+            }
+            Cond::GT => {
+                !self.register.cpsr.contains(Cpsr::Z)
+                    && (self.register.cpsr.contains(Cpsr::N)
+                        != self.register.cpsr.contains(Cpsr::V))
+            }
             Cond::LE => {
                 self.register.cpsr.contains(Cpsr::Z)
-                    || (self.register.cpsr.contains(Cpsr::N) ^ self.register.cpsr.contains(Cpsr::V))
+                    || (self.register.cpsr.contains(Cpsr::N)
+                        == self.register.cpsr.contains(Cpsr::V))
             }
             Cond::AL => true,
-            Cond::NV => todo!(),
+            Cond::NV => false,
         }
     }
 
@@ -151,6 +169,12 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
     }
 
     fn execute_arm_str(&self, mem_instr: MemoryInstr) {
+        todo!()
+    }
+
+    fn execute_arm_stm(&self, mem_instr: MemoryInstr) {
+        println!("{:#?}", self.register);
+        println!("{:08b}", mem_instr.rlist);
         todo!()
     }
 }

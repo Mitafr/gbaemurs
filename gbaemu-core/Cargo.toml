@@ -4,9 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-gbaemu-common = { version = "*", path = "../gbaemu-common" }
-gbaemu-rom = { version = "*", path = "../gbaemu-rom" }
-gbaemu-renderer = { version = "*", path = "../gbaemu-renderer" }
-gbaemu-ppu = { version = "*", path = "../gbaemu-ppu" }
-gbaemu-cpu = { version = "*", path = "../gbaemu-cpu" }
-sdl2 = { workspace = true }
+gbaemu-common.workspace = true
+gbaemu-rom.workspace = true
+gbaemu-ppu.workspace = true
+gbaemu-cpu.workspace = true
+
+winit = { workspace = true }
+pixels = { workspace = true }

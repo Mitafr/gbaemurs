@@ -4,6 +4,8 @@ use std::{
     path::Path,
 };
 
+use gbaemu_common::Word;
+
 #[derive(Default, Debug)]
 pub struct Rom {
     data: Vec<u8>,
@@ -23,7 +25,7 @@ impl Rom {
         &self.data[0x004..0x004 + 192]
     }
 
-    pub fn entrypoint(&self) -> u32 {
+    pub fn entrypoint(&self) -> Word {
         let bytes: [u8; 4] = self.data[0..0x04].try_into().unwrap();
         u32::from_le_bytes(bytes)
     }
@@ -37,10 +39,10 @@ impl Deref for Rom {
     }
 }
 
-impl Index<u32> for Rom {
-    type Output = u32;
+impl Index<Word> for Rom {
+    type Output = Word;
 
-    fn index(&self, index: u32) -> &Self::Output {
+    fn index(&self, index: Word) -> &Self::Output {
         let start = (index as usize) * 4;
         let bytes = &self.data[start..start + 4];
         unsafe { std::mem::transmute(bytes.as_ptr()) }

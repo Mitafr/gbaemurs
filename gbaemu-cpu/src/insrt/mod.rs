@@ -1,6 +1,8 @@
+use std::fmt::Display;
+
 use branch::BranchInstr;
 use datap::DataPInstr;
-use gbaemu_common::print_bits_with_indices;
+use gbaemu_common::{print_bits_with_indices, Word};
 use memory::MemoryInstr;
 use psr::PsrInstr;
 
@@ -12,11 +14,11 @@ pub mod executor;
 pub mod memory;
 pub mod psr;
 
-pub trait InstrBase {
+pub trait InstrBase: Display {
     fn cond(&self) -> &Cond;
 }
 
-type PreInstr = (u32, Cond, OpCodeType, OpCode);
+type PreInstr = (Word, Cond, OpCodeType, OpCode);
 
 #[derive(Debug, Clone)]
 pub enum Instr {
@@ -37,10 +39,20 @@ impl InstrBase for Instr {
     }
 }
 
-impl From<u32> for Instr {
-    fn from(value: u32) -> Self {
+impl Display for Instr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Instr::Branch(branch_instr) => branch_instr.fmt(f),
+            Instr::DataP(data_pinstr) => data_pinstr.fmt(f),
+            Instr::Psr(psr_instr) => psr_instr.fmt(f),
+            Instr::Memory(memory_instr) => memory_instr.fmt(f),
+        }
+    }
+}
+
+impl From<Word> for Instr {
+    fn from(value: Word) -> Self {
         print_bits_with_indices!(value);
-        println!("value => {:x}", value);
         let optype = OpCodeType::from(value);
         Instr::from((
             value,

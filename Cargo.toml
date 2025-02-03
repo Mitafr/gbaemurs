@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = [ "gbaemu-common","gbaemu-core", "gbaemu-cpu", "gbaemu-ppu", "gbaemu-renderer", "gbaemu-rom"]
+members = ["gbaemu-common","gbaemu-core", "gbaemu-cpu", "gbaemu-ppu", "gbaemu-rom"]
 resolver = "2"
 
 [profile.dev.package."*"]
@@ -16,11 +16,17 @@ strip = true
 lto = true
 opt-level = "z"
 codegen-units = 1
-panic = "abort"
+panic = "unwind"
 
 [dependencies]
-gbaemu-core = { version = "*", path = "./gbaemu-core"}
-gbaemu-renderer = { version = "*", path = "./gbaemu-renderer"}
+gbaemu-core.workspace = true
 
 [workspace.dependencies]
-sdl2 = { version = "*", features = ["unsafe_textures"] }
+winit = { version = "0.30" }
+pixels = { version = "0.15" }
+gbaemu-core = { version = "*", path = "./gbaemu-core"}
+gbaemu-common = { version = "*", path = "./gbaemu-common"}
+gbaemu-cpu = { version = "*", path = "./gbaemu-cpu"}
+gbaemu-ppu = { version = "*", path = "./gbaemu-ppu"}
+gbaemu-rom = { version = "*", path = "./gbaemu-rom"}
+

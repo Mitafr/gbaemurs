@@ -16,7 +16,7 @@ enum CpuState {
     Exit = 2,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 enum CpuMode {
     #[default]
     Arm,
@@ -28,6 +28,8 @@ pub struct Cpu {
     register: CpuRegister,
     mode: CpuMode,
     state: CpuState,
+
+    cycle: u32,
 }
 
 impl Cpu {
@@ -36,17 +38,13 @@ impl Cpu {
             instr: Instr::from(rom.entrypoint()),
             register: &mut self.register,
             bus,
+            cycle: &mut self.cycle,
+            mode: self.mode,
         }
         .execute();
 
         while self.state == CpuState::Running {
-            InstrExecutor {
-                instr: self.fetch(bus),
-                register: &mut self.register,
-                bus,
-            }
-            .execute();
-            println!("{:#?}", self.register);
+            self.advance(bus);
         }
         println!("{:#?}", self.register);
     }
@@ -56,5 +54,16 @@ impl Cpu {
         self.register.pc += 4;
         println!("Instr from pc => {}", address);
         Instr::from(bus.read(address))
+    }
+
+    pub fn advance<B: Memory>(&mut self, bus: &mut B) {
+        InstrExecutor {
+            instr: self.fetch(bus),
+            register: &mut self.register,
+            bus,
+            cycle: &mut self.cycle,
+            mode: self.mode,
+        }
+        .execute();
     }
 }

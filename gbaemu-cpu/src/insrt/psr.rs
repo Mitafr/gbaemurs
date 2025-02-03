@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::opcode::OpCode;
 
 use super::{Cond, InstrBase, PreInstr};
@@ -40,5 +42,11 @@ impl TryFrom<PreInstr> for PsrInstr {
 impl InstrBase for PsrInstr {
     fn cond(&self) -> &Cond {
         &self.cond
+    }
+}
+
+impl Display for PsrInstr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}{{{:?}}}", self.op, self.cond())
     }
 }
