@@ -46,12 +46,12 @@ impl Display for DataPInstr {
             OpCode::MOV | OpCode::MVN | OpCode::ORR | OpCode::EOR | OpCode::AND | OpCode::BIC => {
                 write!(
                     f,
-                    "{{{}}} R{:x},{:x},{:x}",
+                    "{{{}}} R{},{:#x},{:#x}",
                     self.set_cond as u8, self.rd, self.rn, self.op2
                 )?;
             }
             OpCode::TST | OpCode::TEQ => {
-                write!(f, "{{P}} {:x},{:x}", self.rd, self.rn)?;
+                write!(f, "{{P}} {:#x},{:#x}", self.rd, self.rn)?;
             }
             _ => {}
         }

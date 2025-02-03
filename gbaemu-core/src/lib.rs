@@ -9,7 +9,7 @@ use gbaemu_cpu::{mem::CpuMemory, Cpu};
 use gbaemu_ppu::Ppu;
 use gbaemu_rom::Rom;
 use renderer::{WinitRenderer, W_HEIGHT, W_WIDTH};
-use winit::event_loop::{self, ControlFlow, EventLoop};
+use winit::event_loop::{ControlFlow, EventLoop};
 
 mod cart;
 mod renderer;

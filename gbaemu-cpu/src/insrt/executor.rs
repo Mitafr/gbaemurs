@@ -68,7 +68,11 @@ impl<'c, B: Memory> InstrExecutor<'c, B> {
         if !self.cond_match(instr) {
             return;
         }
-        self.register.pc = self.register.pc + 8 + instr.offset.unwrap() * 4
+
+        let mut offset = instr.offset.unwrap() << 2;
+        offset = ((offset as u32) << 6) >> 6;
+
+        self.register.pc = self.register.pc.wrapping_add(8).wrapping_add(offset as u32);
     }
 
     fn execute_arm_adc(self, instr: DataPInstr) {

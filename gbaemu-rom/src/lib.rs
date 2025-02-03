@@ -1,10 +1,6 @@
-use std::{
-    fs, io,
-    ops::{Deref, Index},
-    path::Path,
-};
+use std::{fs, io, ops::Deref, path::Path};
 
-use gbaemu_common::Word;
+use gbaemu_common::{mem::Memory, Word};
 
 #[derive(Default, Debug)]
 pub struct Rom {
@@ -39,12 +35,14 @@ impl Deref for Rom {
     }
 }
 
-impl Index<Word> for Rom {
-    type Output = Word;
-
-    fn index(&self, index: Word) -> &Self::Output {
-        let start = (index as usize) * 4;
+impl Memory for Rom {
+    fn read(&self, address: Word) -> Word {
+        let start = (address as usize) * 4;
         let bytes = &self.data[start..start + 4];
-        unsafe { std::mem::transmute(bytes.as_ptr()) }
+        u32::from_le_bytes(bytes.try_into().unwrap())
+    }
+
+    fn write(&mut self, _address: u16, _value: u16) {
+        unreachable!()
     }
 }

@@ -53,6 +53,7 @@ impl Display for Instr {
 impl From<Word> for Instr {
     fn from(value: Word) -> Self {
         print_bits_with_indices!(value);
+        println!("{:x}", value);
         let optype = OpCodeType::from(value);
         Instr::from((
             value,

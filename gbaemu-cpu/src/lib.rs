@@ -50,8 +50,8 @@ impl Cpu {
     }
 
     fn fetch<B: Memory>(&mut self, bus: &B) -> Instr {
-        let address = self.register.pc;
-        self.register.pc += 4;
+        let address = self.register.pc & !0x3;
+        self.register.pc = self.register.pc.wrapping_add(4);
         println!("Instr from pc => {}", address);
         Instr::from(bus.read(address))
     }

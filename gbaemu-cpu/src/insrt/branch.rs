@@ -35,6 +35,12 @@ impl InstrBase for BranchInstr {
 
 impl Display for BranchInstr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}{{{:?}}}", self.op, self.cond())
+        write!(
+            f,
+            "{:?}{{{:?}}} {:#x}",
+            self.op,
+            self.cond(),
+            self.offset.unwrap_or_default() * 4
+        )
     }
 }
